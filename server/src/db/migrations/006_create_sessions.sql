@@ -1,0 +1,10 @@
+CREATE TABLE IF NOT EXISTS sessions (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  date DATE NOT NULL DEFAULT CURRENT_DATE,
+  puzzles_attempted INTEGER NOT NULL DEFAULT 0,
+  puzzles_solved INTEGER NOT NULL DEFAULT 0,
+  session_type VARCHAR(32) NOT NULL DEFAULT 'daily'
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
