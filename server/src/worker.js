@@ -11,7 +11,13 @@ const worker = new Worker(
     console.log(`Processing job ${job.id} (${job.name})`, job.data);
 
     if (job.name === "ping") {
-      return { pong: true, receivedAt: new Date().toISOString(), data: job.data };
+      return { pong: true, receivedAt: new Date().toISOString() };
+    }
+
+    if (job.name === "analyze-game") {
+      const { gameId, userId } = job.data;
+      console.log(`[stub] Would analyze game ${gameId} for user ${userId}`);
+      return { analyzed: false, stub: true };
     }
 
     throw new Error(`Unknown job type: ${job.name}`);
