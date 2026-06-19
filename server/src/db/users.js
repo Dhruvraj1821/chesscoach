@@ -19,3 +19,12 @@ export async function getUserById(id) {
   );
   return rows[0] || null;
 }
+
+
+export async function getUserWithTokenById(id) {
+  const { rows } = await pool.query(
+    `SELECT id, lichess_id, username, access_token, weakness_profile, created_at FROM users WHERE id = $1`,
+    [id]
+  );
+  return rows[0] || null;
+}

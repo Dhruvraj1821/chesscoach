@@ -4,26 +4,32 @@ const LICHESS_HOST = "https://lichess.org";
 
 
 export async function fetchUserGames(username, accessToken, max = 20) {
-  const response = await axios.get(
-    `${LICHESS_HOST}/api/games/user/${username}`,
-    {
-      params: {
-        max,
-        pgnInJson: true,   // include PGN string inside the JSON object
-        opening: true,     // include opening name
-        clocks: false,     // don't need per-move clock data in the JSON
-        evals: false,      //  run our own Stockfish evals 
-        moves: true,       // include moves in PGN
-      },
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: "application/x-ndjson",
-      },
-      responseType: "text",
-    }
-  );
+  let response;
+  try {
+    response = await axios.get(
+      `${LICHESS_HOST}/api/games/user/${username}`,
+      {
+        params: {
+          max,
+          pgnInJson: true,
+          opening: true,
+          clocks: false,
+          evals: false,
+          moves: true,
+        },
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/x-ndjson",
+        },
+        responseType: "text",
+      }
+    );
+  } catch (err) {
+    console.error("Lichess API error status:", err.response?.status);
+    console.error("Lichess API error body:", err.response?.data);
+    throw err;
+  }
 
-  // Split on newlines, filter empty lines, parse each line as JSON
   const lines = response.data
     .split("\n")
     .map((line) => line.trim())

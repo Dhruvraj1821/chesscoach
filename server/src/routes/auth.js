@@ -1,7 +1,7 @@
 import express from "express";
 import axios from "axios";
 import { generateCodeVerifier, generateCodeChallenge, generateState } from "../utils/pkce.js";
-import { generateAccessToken, generateRefreshToken, getRefreshTokenExpiry } from "../utils/jwt.js";
+import { generateAccessToken, generateRefreshToken, getRefreshTokenExpiry, verifyAccessToken } from "../utils/jwt.js";
 import { upsertUser, getUserById } from "../db/users.js";
 import { storeRefreshToken, getRefreshToken, deleteRefreshToken, deleteAllRefreshTokensForUser } from "../db/refreshTokens.js";
 
@@ -148,15 +148,13 @@ router.post("/logout", async (req, res) => {
   res.json({ success: true });
 });
 
-// GET /auth/me
-// Requires Authorization: Bearer <accessToken> header
+
 router.get("/me", async (req, res) => {
   const authHeader = req.headers.authorization;
   if (!authHeader?.startsWith("Bearer ")) {
     return res.status(401).json({ error: "No access token" });
   }
 
-  const { verifyAccessToken } = await import("../utils/jwt.js");
   try {
     const payload = verifyAccessToken(authHeader.slice(7));
     const user = await getUserById(payload.userId);

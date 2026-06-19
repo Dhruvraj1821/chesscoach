@@ -2,7 +2,7 @@ import express from "express";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { fetchUserGames, parseLichessGame } from "../utils/lichessApi.js";
 import { insertGame, getGamesByUserId } from "../db/games.js";
-import { getUserById } from "../db/users.js";
+import { getUserById, getUserWithTokenById } from "../db/users.js";
 import { analysisQueue } from "../queues/analysisQueue.js";
 
 const router = express.Router();
@@ -11,7 +11,7 @@ const router = express.Router();
 // Fetches recent games from Lichess, stores new ones, queues analysis jobs
 router.post("/import", requireAuth, async (req, res) => {
   const max = parseInt(req.query.max) || 20;
-  const user = await getUserById(req.user.userId);
+  const user = await getUserWithTokenById(req.user.userId);
 
   if (!user) {
     return res.status(401).json({ error: "User not found" });
