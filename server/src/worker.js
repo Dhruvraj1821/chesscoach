@@ -4,6 +4,7 @@ import { connection } from "./queues/connection.js";
 import { ANALYSIS_QUEUE_NAME } from "./queues/analysisQueue.js";
 import { analyzeGame } from "./engine/analyzeGame.js";
 import { extractBlunders } from "./engine/extractBlunders.js";
+import { generatePuzzlesForGame } from "./analysis/generatePuzzles.js";
 import { StockfishEngine } from "./engine/stockfishEngine.js";
 
 dotenv.config();
@@ -31,7 +32,10 @@ const worker = new Worker(
       const blunderResult = await extractBlunders(gameId, userId);
       console.log(`Extracted ${blunderResult.blundersExtracted} blunders from game ${gameId}`);
 
-      return { ...analysisResult, ...blunderResult };
+      const puzzleResult = await generatePuzzlesForGame(gameId, userId);
+      console.log(`Generated ${puzzleResult.puzzlesGenerated} puzzles from game ${gameId}`);
+
+      return { ...analysisResult, ...blunderResult, ...puzzleResult };
     }
 
     throw new Error(`Unknown job type: ${job.name}`);

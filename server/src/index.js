@@ -7,6 +7,7 @@ import { analysisQueue } from "./queues/analysisQueue.js";
 import authRouter from "./routes/auth.js";
 import gamesRouter from "./routes/games.js";
 import analysisRouter from "./routes/analysis.js";
+import puzzlesRouter from "./routes/puzzles.js";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ app.get("/health", (req, res) => {
 app.use("/auth", authRouter);
 app.use("/games", gamesRouter);
 app.use("/analysis", analysisRouter);
+app.use("/puzzles", puzzlesRouter);
 
 // Temporary — remove in Step 6
 app.post("/test/ping-job", async (req, res) => {
