@@ -2,8 +2,17 @@ import dotenv from "dotenv";
 import { Worker } from "bullmq";
 import { connection } from "./queues/connection.js";
 import { ANALYSIS_QUEUE_NAME } from "./queues/analysisQueue.js";
+import { analyzeGame } from "./engine/analyzeGame.js";
+import { StockfishEngine } from "./engine/stockfishEngine.js";
 
 dotenv.config();
+
+// Single shared Stockfish instance for the lifetime of this worker process.
+// The stockfish npm package's WASM module cannot be safely re-instantiated
+// multiple times in one Node process, so we start it once and reset
+// its internal state between games via `reset()`.
+const engine = new StockfishEngine();
+let engineReady = engine.start();
 
 const worker = new Worker(
   ANALYSIS_QUEUE_NAME,
@@ -15,9 +24,12 @@ const worker = new Worker(
     }
 
     if (job.name === "analyze-game") {
-      const { gameId, userId } = job.data;
-      console.log(`[stub] Would analyze game ${gameId} for user ${userId}`);
-      return { analyzed: false, stub: true };
+      await engineReady; // make sure engine finished starting
+      const { gameId } = job.data;
+      await engine.reset();
+      const result = await analyzeGame(gameId, engine);
+      console.log(`Analyzed game ${gameId}: ${result.movesAnalyzed} moves`);
+      return result;
     }
 
     throw new Error(`Unknown job type: ${job.name}`);

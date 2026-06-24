@@ -67,4 +67,14 @@ router.get("/", requireAuth, async (req, res) => {
   res.json({ games });
 });
 
+router.post("/:id/reanalyze", requireAuth, async (req, res) => {
+  const gameId = parseInt(req.params.id);
+  await analysisQueue.add(
+    "analyze-game",
+    { gameId, userId: req.user.userId },
+    { jobId: `analyze-${gameId}-${Date.now()}` } // unique jobId to force re-run
+  );
+  res.json({ queued: true, gameId });
+});
+
 export default router;
