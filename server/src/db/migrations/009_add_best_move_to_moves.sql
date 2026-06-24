@@ -1,0 +1,1 @@
+ALTER TABLE moves ADD COLUMN IF NOT EXISTS best_move_uci VARCHAR(8);

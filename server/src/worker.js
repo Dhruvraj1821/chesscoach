@@ -3,14 +3,11 @@ import { Worker } from "bullmq";
 import { connection } from "./queues/connection.js";
 import { ANALYSIS_QUEUE_NAME } from "./queues/analysisQueue.js";
 import { analyzeGame } from "./engine/analyzeGame.js";
+import { extractBlunders } from "./engine/extractBlunders.js";
 import { StockfishEngine } from "./engine/stockfishEngine.js";
 
 dotenv.config();
 
-// Single shared Stockfish instance for the lifetime of this worker process.
-// The stockfish npm package's WASM module cannot be safely re-instantiated
-// multiple times in one Node process, so we start it once and reset
-// its internal state between games via `reset()`.
 const engine = new StockfishEngine();
 let engineReady = engine.start();
 
@@ -24,12 +21,17 @@ const worker = new Worker(
     }
 
     if (job.name === "analyze-game") {
-      await engineReady; // make sure engine finished starting
-      const { gameId } = job.data;
+      await engineReady;
+      const { gameId, userId } = job.data;
+
       await engine.reset();
-      const result = await analyzeGame(gameId, engine);
-      console.log(`Analyzed game ${gameId}: ${result.movesAnalyzed} moves`);
-      return result;
+      const analysisResult = await analyzeGame(gameId, engine);
+      console.log(`Analyzed game ${gameId}: ${analysisResult.movesAnalyzed} moves`);
+
+      const blunderResult = await extractBlunders(gameId, userId);
+      console.log(`Extracted ${blunderResult.blundersExtracted} blunders from game ${gameId}`);
+
+      return { ...analysisResult, ...blunderResult };
     }
 
     throw new Error(`Unknown job type: ${job.name}`);
@@ -45,4 +47,4 @@ worker.on("failed", (job, err) => {
   console.error(`Job ${job?.id} failed:`, err.message);
 });
 
-console.log("Worker started, listening for jobs on:", ANALYSIS_QUEUE_NAME);
+console.log("Worker started, listening for jobs on: game-analysis");
