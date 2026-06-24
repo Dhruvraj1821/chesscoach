@@ -8,15 +8,13 @@ import authRouter from "./routes/auth.js";
 import gamesRouter from "./routes/games.js";
 import analysisRouter from "./routes/analysis.js";
 import puzzlesRouter from "./routes/puzzles.js";
+import sessionsRouter from "./routes/sessions.js";
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors({
-  origin: "http://localhost:5173",
-  credentials: true, // needed for cookies (refresh token)
-}));
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -28,8 +26,9 @@ app.use("/auth", authRouter);
 app.use("/games", gamesRouter);
 app.use("/analysis", analysisRouter);
 app.use("/puzzles", puzzlesRouter);
+app.use("/sessions", sessionsRouter);
 
-// Temporary — remove in Step 6
+// Temporary — remove after Step 6
 app.post("/test/ping-job", async (req, res) => {
   const job = await analysisQueue.add("ping", { message: "hello from API" });
   res.json({ jobId: job.id });
